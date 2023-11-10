@@ -5,6 +5,8 @@ import torch
 def double_convolution(in_channels, out_channels):
     conv_op = nn.Sequential(
         nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=3, padding=1),
+        nn.BatchNorm2d(out_channels),
+        nn.Dropout2d(p=0.2),
         nn.ReLU(inplace=True),
         nn.Conv2d(in_channels=out_channels, out_channels=out_channels, kernel_size=3, padding=1),
         nn.ReLU(),
@@ -17,23 +19,23 @@ class UNet(nn.Module):
         self.maxpool2d = nn.MaxPool2d(kernel_size=2, stride=2)
         # Contracting Path
         # Each convolution is applied twice
-        self.down_conv1 = double_convolution(input_channels, 64)
-        self.down_conv2 = double_convolution(64, 128)
-        self.down_conv3 = double_convolution(128, 256)
-        self.down_conv4 = double_convolution(256, 512)
-        self.down_conv5 = double_convolution(512, 1024)
+        self.down_conv1 = double_convolution(input_channels, 32)
+        self.down_conv2 = double_convolution(32, 64)
+        self.down_conv3 = double_convolution(64, 128)
+        self.down_conv4 = double_convolution(128, 256)
+        self.down_conv5 = double_convolution(256, 512)
         # Expanding Path
-        self.up_transpose1 = nn.ConvTranspose2d(in_channels=1024, out_channels=512, kernel_size=2, stride=2)
+        self.up_transpose1 = nn.ConvTranspose2d(in_channels=512, out_channels=256, kernel_size=2, stride=2)
         # Below, in_channels become 1024 as we are concatinating
-        self.up_conv1 = double_convolution(1024, 512)
-        self.up_transpose2 = nn.ConvTranspose2d(512, 256, 2, 2)
-        self.up_conv2 = double_convolution(512, 256)
-        self.up_transpose3 = nn.ConvTranspose2d(256, 128, 2, 2)
-        self.up_conv3 = double_convolution(256, 128)
-        self.up_transpose4 = nn.ConvTranspose2d(128, 64, 2, 2)
-        self.up_conv4 = double_convolution(128, 64)
+        self.up_conv1 = double_convolution(512, 256)
+        self.up_transpose2 = nn.ConvTranspose2d(256, 128, 2, 2)
+        self.up_conv2 = double_convolution(256, 128)
+        self.up_transpose3 = nn.ConvTranspose2d(128, 64, 2, 2)
+        self.up_conv3 = double_convolution(128, 64)
+        self.up_transpose4 = nn.ConvTranspose2d(64, 32, 2, 2)
+        self.up_conv4 = double_convolution(64, 32)
         # out_conv
-        self.conv_out = nn.Conv2d(in_channels=64, out_channels=num_classes, kernel_size=1)
+        self.conv_out = nn.Conv2d(in_channels=32, out_channels=num_classes, kernel_size=1)
 
     def forward(self, x):
         # encoder

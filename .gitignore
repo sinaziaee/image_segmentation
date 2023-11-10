@@ -5,3 +5,4 @@ utils/.init-conda.swp
 utils/__pycache__/
 best_model.pt
 resutls/best_model.pt
+results/*
