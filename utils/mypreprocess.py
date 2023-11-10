@@ -21,12 +21,14 @@ class CustomDataset(Dataset):
 
         self.image_paths = []
         self.label_paths = []
+        self.images_no = 0
+        self.masks_no = 0
 
         for img in sorted(os.listdir(self.base_image_paths)):
             if 'png' in str(img):
                 image_path = os.path.join(self.base_image_paths, img)
                 self.image_paths.append(image_path)
-
+                
         for lbl in sorted(os.listdir(self.base_label_paths)):
             if 'png' in str(lbl):
                 label_path = os.path.join(self.base_label_paths, lbl)
@@ -36,7 +38,8 @@ class CustomDataset(Dataset):
         total_labels = len(self.label_paths)
 
         assert total_samples == total_labels, f"Number of images and labels don't match. imgs:{total_samples}, lbls:{total_labels}"
-        print(f"Total No. of images: {total_samples}, Total No. of masks: {total_labels}")
+        self.images_no = total_samples
+        self.labels_no = total_labels
 
     def __len__(self):
         return len(self.image_paths)
@@ -60,28 +63,26 @@ class CustomDataset(Dataset):
         # image = np.expand_dims(image, axis=0)
 
         return image
-    
-def create_transformer(img_size=320):
-    data_transformer = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Resize((img_size, img_size), antialias=True),
-        # transforms.Normalize((0.5,), (0.5,))
-    ])
-    return data_transformer
 
 def create_data_loaders(path_dir, image_dir, label_dir, data_transformer, batch_size=16, split_size=[0.8, 0.1]):
     dataset = CustomDataset(root_dir=path_dir, base_image_paths=image_dir,
                                     base_label_paths=label_dir, transform=data_transformer)
-
-    train_size = int(split_size[0] * len(dataset))
-    valid_size = int(split_size[1] * len(dataset))
-    test_size = len(dataset) - train_size - valid_size
-    # batch_size = 32
-    train_dataset, valid_dataset, test_dataset = random_split(dataset,
-                                            [train_size, valid_size, test_size])
-
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    valid_loader = DataLoader(valid_dataset, batch_size=batch_size, shuffle=False)
-    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
     
-    return train_loader, valid_loader, test_loader
+    if split_size is not None:
+        train_size = int(split_size[0] * len(dataset))
+        valid_size = int(split_size[1] * len(dataset))
+        test_size = len(dataset) - train_size - valid_size
+        # batch_size = 32
+        train_dataset, valid_dataset, test_dataset = random_split(dataset,
+                                                [train_size, valid_size, test_size])
+
+        train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+        valid_loader = DataLoader(valid_dataset, batch_size=batc    h_size, shuffle=False)
+        test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+        print(f'dataset info: \n No images: {dataset.images_no}, No masks: {dataset.labels_no}, \n Loaders Len: t:{len(train_loader)}, v:{len(valid_loader)}, test: {len(test_loader)}')
+        return train_loader, valid_loader, test_loader
+    else:
+        loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+        print(f'dataset info: \n No images: {dataset.images_no}, No masks: {dataset.labels_no}, \n No of batches: {len(loader)}, batch shape: {next(iter(loader))[0].shape}')
+        return loader
+    

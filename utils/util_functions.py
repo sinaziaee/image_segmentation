@@ -40,7 +40,7 @@ def visualize_training(train_loss_list, valid_loss_list, valid_iou_list=None, di
     if valid_dice_list is not None:
         fig[3].plot(valid_dice_list)
         fig[3].set_title("Valid Dice")
-    plt.savefig(f'results/{results_folder}/train_result_fig.png')
+    plt.savefig(f'{results_folder}/train_result_fig.png')
     plt.show()
     
 def dice_coefficient2(target, preds):
@@ -61,26 +61,17 @@ def calculate_IoU(outputs, masks):
     iou = intersection / union
     return iou
     
-def visualize_dataset(train_loader, valid_loader):
+def visualize_dataset(train_loader):
     sam = iter(train_loader)
     nex = next(sam)
     print(nex[0].shape)
     print("Len of train_loader:", len(train_loader))
-    print("Len of valid_loader", len(valid_loader))
-
-    ax, fig = plt.subplots(1, 10, figsize=(20, 4))
-    img_mask = 0
+    ax, fig = plt.subplots(2, 10, figsize=(20, 6))
     for i in range(10):
-        te = nex[img_mask][i]
-        image_array = te.squeeze().numpy()
-        fig[i].imshow(image_array, cmap='gray')
-    plt.show()
-    ax, fig = plt.subplots(1, 10, figsize=(20, 4))
-    img_mask = 1
-    for i in range(10):
-        te = nex[img_mask][i]
-        image_array = te.squeeze().numpy()
-        fig[i].imshow(image_array, cmap='gray')
+        image = nex[0][i].squeeze().numpy()
+        mask = nex[1][i].squeeze().numpy()
+        fig[0, i].imshow(image, cmap='gray')
+        fig[1, i].imshow(mask, cmap='gray')
     plt.show()
 
 def create_result_folder(path, with_time=True):
@@ -88,6 +79,11 @@ def create_result_folder(path, with_time=True):
     current_datetime = datetime.now()
     if with_time is True:
         folder_name = current_datetime.strftime("%Y-%m-%d_%H-%M")
-        new_path = os.join(path, folder_name)
+        new_path = os.path.join(path, folder_name)
         os.makedirs(new_path)
         return new_path
+    
+def apply_gaussian_noise(img, std_dev):
+    noise = torch.randn_like(img) * std_dev
+    noisy_img = img + noise
+    return noisy_img
