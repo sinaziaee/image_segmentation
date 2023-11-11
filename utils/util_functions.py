@@ -66,12 +66,16 @@ def visualize_dataset(train_loader):
     nex = next(sam)
     print(nex[0].shape)
     print("Len of train_loader:", len(train_loader))
-    ax, fig = plt.subplots(2, 10, figsize=(20, 6))
+    ax, fig = plt.subplots(4, 10, figsize=(20, 10))
     for i in range(10):
-        image = nex[0][i].squeeze().numpy()
-        mask = nex[1][i].squeeze().numpy()
-        fig[0, i].imshow(image, cmap='gray')
-        fig[1, i].imshow(mask, cmap='gray')
+        image1 = nex[0][i].squeeze().numpy()
+        mask1 = nex[1][i].squeeze().numpy()
+        image2 = nex[0][i+10].squeeze().numpy()
+        mask2 = nex[1][i+10].squeeze().numpy()
+        fig[0, i].imshow(image1, cmap='gray')
+        fig[1, i].imshow(mask1, cmap='gray')
+        fig[2, i].imshow(image2, cmap='gray')
+        fig[3, i].imshow(mask2, cmap='gray')
     plt.show()
 
 def create_result_folder(path, with_time=True):
