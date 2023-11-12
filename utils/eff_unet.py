@@ -7,11 +7,12 @@ class DecoderBlock(nn.Module):
         super().__init__()
         self.double_conv = nn.Sequential(
             nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=3, padding=1),
-            nn.ReLU(),
             nn.BatchNorm2d(num_features= out_channels),
-            nn.Conv2d(in_channels=out_channels, out_channels=out_channels, kernel_size=3, padding=1),
+            nn.Dropout2d(p=0.2),
             nn.ReLU(),
+            nn.Conv2d(in_channels=out_channels, out_channels=out_channels, kernel_size=3, padding=1),
             nn.BatchNorm2d(num_features=out_channels)
+            nn.ReLU(),
         )
         
     def forward(self, x):

@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import os
 from datetime import datetime
 
-def show_image(image,mask,pred_image = None):
+def show_image(image,mask,pred_image = None, path_dir=None, num=None):
     
     if pred_image == None:
         
@@ -27,6 +27,9 @@ def show_image(image,mask,pred_image = None):
         
         ax3.set_title('MODEL OUTPUT')
         ax3.imshow(pred_image.permute(1,2,0).squeeze(),cmap = 'gray')
+        # if path_dir is not None:
+        #     plt.savefig(f'{path_dir}/{num}.png')
+
 
 def visualize_training(train_loss_list, valid_loss_list, valid_iou_list=None, dice_score_list=None, valid_dice_list=None, results_folder= None):
     ax, fig = plt.subplots(1, 4, figsize=(16, 4))
@@ -84,7 +87,10 @@ def create_result_folder(path, with_time=True):
     if with_time is True:
         folder_name = current_datetime.strftime("%Y-%m-%d_%H-%M")
         new_path = os.path.join(path, folder_name)
-        os.makedirs(new_path)
+        if os.path.exists(new_path) and os.path.isdir(new_path):
+            pass
+        else:
+            os.makedirs(new_path)
         return new_path
     
 def apply_gaussian_noise(img, std_dev):
