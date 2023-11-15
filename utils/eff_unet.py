@@ -11,7 +11,7 @@ class DecoderBlock(nn.Module):
             nn.Dropout2d(p=0.2),
             nn.ReLU(),
             nn.Conv2d(in_channels=out_channels, out_channels=out_channels, kernel_size=3, padding=1),
-            nn.BatchNorm2d(num_features=out_channels)
+            nn.BatchNorm2d(num_features=out_channels),
             nn.ReLU(),
         )
         

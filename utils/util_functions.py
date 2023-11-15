@@ -27,8 +27,9 @@ def show_image(image,mask,pred_image = None, path_dir=None, num=None):
         
         ax3.set_title('MODEL OUTPUT')
         ax3.imshow(pred_image.permute(1,2,0).squeeze(),cmap = 'gray')
-        # if path_dir is not None:
-        #     plt.savefig(f'{path_dir}/{num}.png')
+        # Save the figure if a save_file path is provided
+        if path_dir is not None:
+            plt.savefig(f'{path_dir}/{num}.png')
 
 
 def visualize_training(train_loss_list, valid_loss_list, valid_iou_list=None, dice_score_list=None, valid_dice_list=None, results_folder= None):
@@ -97,3 +98,41 @@ def apply_gaussian_noise(img, std_dev):
     noise = torch.randn_like(img) * std_dev
     noisy_img = img + noise
     return noisy_img
+
+# base_dir = '/scratch/student/sinaziaee/datasets/2d_dataset/training'
+# new_path = '/scratch/student/sinaziaee/datasets/new_dt/training'
+# import cv2 as cv
+# for path in os.listdir(f'{base_dir}/labels'):
+#     mask = cv.imread(f'{base_dir}/labels/{path}', cv.IMREAD_GRAYSCALE)
+#     if np.sum(mask) == 0:
+#         pass
+#     else:
+#         name = path[-13:]
+#         image_array = cv.imread(f'{base_dir}/images/training_image_{name}', cv.IMREAD_GRAYSCALE)
+#         image = Image.fromarray(image_array)
+#         mask = Image.fromarray(mask)
+#         image.save(f"{new_path}/images/training_image_{name}")
+#         mask.save(f"{new_path}/labels/training_label_{name}")
+
+
+# import torch
+# import torch.nn as nn
+
+# class IoULoss(nn.Module):
+#     def __init__(self, smooth=1e-6):
+#         super(IoULoss, self).__init__()
+#         self.smooth = smooth
+
+#     def forward(self, prediction, target):
+#         # Flatten the prediction and target tensors
+#         prediction = prediction.view(-1)
+#         target = target.view(-1)
+
+#         intersection = (prediction * target).sum()
+#         union = prediction.sum() + target.sum() - intersection
+
+#         iou_score = (intersection + self.smooth) / (union + self.smooth)
+
+#         iou_loss = 1.0 - iou_score
+
+#         return iou_loss
