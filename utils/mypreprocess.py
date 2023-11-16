@@ -77,6 +77,10 @@ class CustomDataset(Dataset):
 
         return image
 
+    def get_filename(self, index):
+        """Get the filename of the image at the specified index."""
+        return os.path.basename(self.image_paths[index])
+
 def create_data_loaders(path_dir, image_dir, label_dir, data_transformer, batch_size=16, 
                         split_size=[0.8, 0.1], spatial_transforms=None, non_spatial_transforms=None):
     dataset = CustomDataset(root_dir=path_dir, base_image_paths=image_dir,
@@ -101,4 +105,3 @@ def create_data_loaders(path_dir, image_dir, label_dir, data_transformer, batch_
         print(f'dataset info: \n No images: {dataset.images_no}, No masks: {dataset.labels_no}, \n No of batches: {len(loader)}, batch shape: {next(iter(loader))[0].shape}')
         # print(f'dataset info: \n No images: {dataset.images_no}, No masks: {dataset.labels_no}, \n No of batches: {len(loader)}')
         return loader
-    
