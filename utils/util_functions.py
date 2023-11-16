@@ -2,6 +2,7 @@ import torch
 import matplotlib.pyplot as plt
 import os
 from datetime import datetime
+from torchvision import transforms
 
 def show_image(image,mask,pred_image = None, path_dir=None, num=None):
     
@@ -46,6 +47,9 @@ def visualize_training(train_loss_list, valid_loss_list, valid_iou_list=None, di
         fig[3].set_title("Valid Dice")
     plt.savefig(f'{results_folder}/train_result_fig.png')
     plt.show()
+    
+def dice_coefficient(loss):
+    return 1 - loss
     
 def dice_coefficient2(target, preds):
     temp = torch.zeros_like(preds[:, 1])
@@ -98,6 +102,52 @@ def apply_gaussian_noise(img, std_dev):
     noise = torch.randn_like(img) * std_dev
     noisy_img = img + noise
     return noisy_img
+
+def make_tfs(augs):
+    return transforms.Compose(augs + [transforms.ToTensor()])
+
+def custom_transformers(scale, contrast, brightness, rotation, blur, img_size=512):
+    geometric_augs = [
+        transforms.RandomResizedCrop(img_size, scale=scale) if scale else None,
+        transforms.RandomRotation(rotation) if rotation else None,
+        transforms.GaussianBlur(blur) if blur else None,
+    ]
+    color_augs = [
+        transforms.ColorJitter(brightness= brightness, contrast=contrast) if brightness and contrast else None,
+    ]
+    tfs = transforms.Compose(geometric_augs)
+    transform_input = make_tfs(geometric_augs + color_augs)
+    transform_target = make_tfs(geometric_augs)
+    return transform_input, transform_target
+
+
+def train_fn(data_loader, model, criterion, optimizer, device, criterion2=None, is_parallel=False, device_0=None, device_1=None):
+    model.train()
+    total_loss = 0
+    for batch in data_loader:
+        if is_parallel is False:
+            images, masks = batch
+            images = images.to(device)
+            masks = masks.to(device)
+        else:
+            images, masks = batch[0].to(device_0), batch[1].to(device_1)
+        
+        outputs = model(images)
+        
+        optimizer.zero_grad() 
+        loss1 = criterion(outputs, masks)
+        if criterion2 is not None:
+            loss2 = criterion2(outputs, masks)
+            loss = loss1 + loss2
+        else:
+            loss = loss1
+            
+        total_loss += loss.item()
+        loss.backward()
+        optimizer.step()
+    
+    avg_loss = total_loss / len(data_loader)
+    return avg_loss
 
 # base_dir = '/scratch/student/sinaziaee/datasets/2d_dataset/training'
 # new_path = '/scratch/student/sinaziaee/datasets/new_dt/training'
