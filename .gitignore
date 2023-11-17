@@ -9,3 +9,4 @@ results/*
 image_segmentation (copy).ipynb
 image_segmentation copy.ipynb
 temp.ipynb
+inference_results/
