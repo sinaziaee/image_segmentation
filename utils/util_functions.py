@@ -66,7 +66,7 @@ def calculate_IoU(outputs, masks):
     predicted_masks = (outputs > 0.5).float()
     intersection = torch.sum(predicted_masks * masks)
     union = torch.sum(predicted_masks) + torch.sum(masks) - intersection
-    iou = intersection / union
+    iou = (intersection + 1e-8)/ (union + 1e-8)
     return iou
     
 def visualize_dataset(train_loader):
@@ -85,6 +85,17 @@ def visualize_dataset(train_loader):
         fig[2, i].imshow(image2, cmap='gray')
         fig[3, i].imshow(mask2, cmap='gray')
     plt.show()
+
+def dice_coefficient2_modified(target, preds):
+    preds_flat = preds.view(-1)
+    target_flat = target.view(-1)
+
+    intersection = (preds_flat * target_flat).sum()
+    set_sum = preds_flat.sum() + target_flat.sum()
+
+    dice = (2 * intersection + 1e-8) / (set_sum + 1e-8) 
+
+    return dice
 
 def create_result_folder(path, with_time=True):
     # Get the current date and time
