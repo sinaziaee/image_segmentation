@@ -127,8 +127,11 @@ def save_2d_slices(paths, output_folder, set_type):
         except Exception as e:
             logging.error(f"Error processing {img_path}: {e}")
 
-DATASET_FOLDER = "/work/ovens_lab/thaonguyen/uncertainty/kits23/dataset"
-OUTPUT_FOLDER = "/work/ovens_lab/thaonguyen/image_segmentation/kits_2d_dataset_new"
+# DATASET_FOLDER = "/work/ovens_lab/thaonguyen/uncertainty/kits23/dataset"
+# OUTPUT_FOLDER = "/work/ovens_lab/thaonguyen/image_segmentation/kits_2d_dataset_new"
+DATASET_FOLDER = "/scratch/student/sinaziaee/kits23/dataset"
+OUTPUT_FOLDER = "/scratch/student/sinaziaee/datasets/kits_2d_dataset_new"
+
 
 if not os.path.exists(OUTPUT_FOLDER):
     os.makedirs(OUTPUT_FOLDER)
