@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from mcdropout import MCDropout2D
 
 class DecoderBlock(nn.Module):
     def __init__(self, in_channels, out_channels):
@@ -8,7 +9,8 @@ class DecoderBlock(nn.Module):
         self.double_conv = nn.Sequential(
             nn.ConvTranspose2d(in_channels=in_channels, out_channels=out_channels, kernel_size=3, padding=1),
             nn.BatchNorm2d(num_features= out_channels),
-            nn.Dropout2d(p=0.2),
+            # nn.Dropout2d(p=0.2),
+            MCDropout2D(p=0.2),
             nn.ReLU(),
             nn.ConvTranspose2d(in_channels=out_channels, out_channels=out_channels, kernel_size=3, padding=1),
             nn.BatchNorm2d(num_features=out_channels),

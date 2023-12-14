@@ -34,17 +34,16 @@ def show_image(image,mask,pred_image = None, path_dir=None, num=None):
 
 
 def visualize_training(train_loss_list, valid_loss_list, valid_iou_list=None, dice_score_list=None, valid_dice_list=None, results_folder= None):
-    ax, fig = plt.subplots(1, 4, figsize=(16, 4))
-    fig[0].plot(train_loss_list)
-    fig[0].set_title("Train Loss")
-    fig[1].plot(valid_loss_list)
-    fig[1].set_title("Valid Loss")
+    ax, fig = plt.subplots(1, 3, figsize=(16, 5))
+    fig[0].plot(train_loss_list, color='blue', label='Train Loss')
+    fig[0].plot(valid_loss_list, color='orange', label='Valid Loss')
+    fig[0].set_title("Train and Valid Loss")
     if valid_iou_list is not None:
-        fig[2].plot(valid_iou_list)
-        fig[2].set_title("Valid IoU")
+        fig[1].plot(valid_iou_list)
+        fig[1].set_title("Valid IoU")
     if valid_dice_list is not None:
-        fig[3].plot(valid_dice_list)
-        fig[3].set_title("Valid Dice")
+        fig[2].plot(valid_dice_list)
+        fig[2].set_title("Valid Dice")
     plt.savefig(f'{results_folder}/train_result_fig.png')
     plt.show()
     
@@ -115,7 +114,7 @@ def apply_gaussian_noise(img, std_dev):
     return noisy_img
 
 def make_tfs(augs):
-    return transforms.Compose(augs + [transforms.ToTensor()])
+    return transforms.Compose([transforms.ToTensor()] + augs)
 
 def custom_transformers(scale, contrast, brightness, rotation, blur, img_size=512):
     geometric_augs = [
@@ -126,32 +125,24 @@ def custom_transformers(scale, contrast, brightness, rotation, blur, img_size=51
     color_augs = [
         transforms.ColorJitter(brightness= brightness, contrast=contrast) if brightness and contrast else None,
     ]
-    tfs = transforms.Compose(geometric_augs)
+    # tfs = transforms.Compose(geometric_augs)
     transform_input = make_tfs(geometric_augs + color_augs)
     transform_target = make_tfs(geometric_augs)
     return transform_input, transform_target
 
 
-def train_fn(data_loader, model, criterion, optimizer, device, criterion2=None, is_parallel=False, device_0=None, device_1=None):
+def train_fn(data_loader, model, criterion, optimizer, device):
     model.train()
     total_loss = 0
     for batch in data_loader:
-        if is_parallel is False:
-            images, masks = batch
-            images = images.to(device)
-            masks = masks.to(device)
-        else:
-            images, masks = batch[0].to(device_0), batch[1].to(device_1)
+        images, masks = batch
+        images = images.to(device)
+        masks = masks.to(device)
         
         outputs = model(images)
         
         optimizer.zero_grad() 
-        loss1 = criterion(outputs, masks)
-        if criterion2 is not None:
-            loss2 = criterion2(outputs, masks)
-            loss = loss1 + loss2
-        else:
-            loss = loss1
+        loss = criterion(outputs, masks)
             
         total_loss += loss.item()
         loss.backward()
