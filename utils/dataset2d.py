@@ -26,7 +26,7 @@ class SegmentationDataset(data.Dataset):
             return img.convert('L')
             
     def __init__(self, input_root, target_root, transform_input=None,
-                 transform_target=None, seed_fn=None):
+                 transform_target=None, seed_fn=None, with_path=False):
         assert bool(transform_input) == bool(transform_target)
         
         self.input_root = input_root
@@ -34,6 +34,7 @@ class SegmentationDataset(data.Dataset):
         self.transform_input = transform_input
         self.transform_target = transform_target
         self.seed_fn = seed_fn
+        self.with_path = with_path
                 
         self.input_ids = sorted(img for img in os.listdir(self.input_root)
                                 if self._isimage(img, self.IMG_EXTENSIONS))
@@ -60,8 +61,10 @@ class SegmentationDataset(data.Dataset):
             input_img = self.transform_input(input_img)
             self._set_seed(seed)
             target_img = self.transform_target(target_img)
-            
-        return input_img, target_img
+        if self.with_path:
+            return input_img, target_img, self.input_ids[idx]
+        else:
+            return input_img, target_img
         
     def __len__(self):
         return len(self.input_ids)

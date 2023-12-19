@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import os
 from datetime import datetime
 from torchvision import transforms
+import nibabel as nib
 
 def show_image(image,mask,pred_image = None, path_dir=None, num=None):
     
@@ -151,40 +152,68 @@ def train_fn(data_loader, model, criterion, optimizer, device):
     avg_loss = total_loss / len(data_loader)
     return avg_loss
 
-# base_dir = '/scratch/student/sinaziaee/datasets/2d_dataset/training'
-# new_path = '/scratch/student/sinaziaee/datasets/new_dt/training'
-# import cv2 as cv
-# for path in os.listdir(f'{base_dir}/labels'):
-#     mask = cv.imread(f'{base_dir}/labels/{path}', cv.IMREAD_GRAYSCALE)
-#     if np.sum(mask) == 0:
-#         pass
-#     else:
-#         name = path[-13:]
-#         image_array = cv.imread(f'{base_dir}/images/training_image_{name}', cv.IMREAD_GRAYSCALE)
-#         image = Image.fromarray(image_array)
-#         mask = Image.fromarray(mask)
-#         image.save(f"{new_path}/images/training_image_{name}")
-#         mask.save(f"{new_path}/labels/training_label_{name}")
+def show_image_modified(image, mask, pred_image=None, path_dir=None, filename=None, iou=None, dice_score=None):
+    image = image.squeeze()  # Remove channel dimension if it's present
+    mask = mask.squeeze()  # Remove channel dimension if it's present
+
+    plt.figure(figsize=(10, 5))
+
+    if pred_image is not None:
+        ax1 = plt.subplot(1, 3, 1)
+        ax2 = plt.subplot(1, 3, 2)
+        ax3 = plt.subplot(1, 3, 3)
+    else:
+        ax1 = plt.subplot(1, 2, 1)
+        ax2 = plt.subplot(1, 2, 2)
+
+    ax1.set_title('IMAGE')
+    ax1.imshow(image, cmap='gray')
+    ax1.axis('off')
+
+    ax2.set_title('GROUND TRUTH')
+    ax2.imshow(mask, cmap='gray')
+    ax2.axis('off')
+
+    # Add IoU and Dice score to the predicted image subplot
+    if pred_image is not None and iou is not None and dice_score is not None:
+        pred_image = pred_image.squeeze()  # Remove channel dimension if it's present
+        ax3.imshow(pred_image, cmap='gray')
+        ax3.set_title('MODEL OUTPUT')
+        ax3.axis('off')
+        ax3.text(5, 5, f'IoU: {iou:.2f}, Dice: {dice_score:.2f}', color='white', fontsize=8, backgroundcolor='black')
+
+    if path_dir is not None and filename is not None:
+        full_path = os.path.join(path_dir, filename)
+        plt.savefig(full_path, bbox_inches='tight', pad_inches=0)
+
+    plt.close()
+
+import numpy as np
+
+def pad_or_crop_3d_numpy(image, mask, target_depth=512):
+    # Get the original depth of the image
+    original_depth = image.shape[0]
+
+    # Calculate the padding or cropping needed
+    padding_needed = max(0, target_depth - original_depth)
+    cropping_needed = max(0, original_depth - target_depth)
+
+    # Padding
+    if padding_needed > 0:
+        pad_lower = padding_needed // 2
+        pad_upper = padding_needed - pad_lower
+        image = np.pad(image, ((pad_lower, pad_upper), (0, 0), (0, 0)), mode='constant', constant_values=0)
+        mask = np.pad(mask, ((pad_lower, pad_upper), (0, 0), (0, 0)), mode='constant', constant_values=0)
+    # Cropping
+    elif cropping_needed > 0:
+        crop_lower = cropping_needed // 2
+        crop_upper = cropping_needed - crop_lower
+        image = image[crop_lower:original_depth - crop_upper, :, :]
+        mask = mask[crop_lower:original_depth - crop_upper, :, :]
+
+    return image, mask
 
 
-# import torch
-# import torch.nn as nn
-
-# class IoULoss(nn.Module):
-#     def __init__(self, smooth=1e-6):
-#         super(IoULoss, self).__init__()
-#         self.smooth = smooth
-
-#     def forward(self, prediction, target):
-#         # Flatten the prediction and target tensors
-#         prediction = prediction.view(-1)
-#         target = target.view(-1)
-
-#         intersection = (prediction * target).sum()
-#         union = prediction.sum() + target.sum() - intersection
-
-#         iou_score = (intersection + self.smooth) / (union + self.smooth)
-
-#         iou_loss = 1.0 - iou_score
-
-#         return iou_loss
+def save_nifti(data, filename, affine=None):
+    nifti_image = nib.Nifti1Image(data, affine)
+    nib.save(nifti_image, filename)

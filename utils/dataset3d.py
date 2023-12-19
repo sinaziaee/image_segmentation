@@ -20,6 +20,7 @@ class SegmentationDataset(data.Dataset):
         if str(path).endswith(".gz"):
             image = sitk.ReadImage(path)
             image_array = sitk.GetArrayFromImage(image)
+            # print(image.GetSpacing())
             return image_array       
         else:  
             with open(path, 'rb') as f:

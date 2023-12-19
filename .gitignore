@@ -12,3 +12,6 @@ temp.ipynb
 inference_results/
 **/*.png
 **/*.gz
+preds/*
+new_3d_dataset/*
+new_3d_dataset.zip

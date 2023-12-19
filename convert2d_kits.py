@@ -132,7 +132,6 @@ def save_2d_slices(paths, output_folder, set_type):
 DATASET_FOLDER = "/scratch/student/sinaziaee/kits23/dataset"
 OUTPUT_FOLDER = "/scratch/student/sinaziaee/datasets/kits_2d_dataset_new"
 
-
 if not os.path.exists(OUTPUT_FOLDER):
     os.makedirs(OUTPUT_FOLDER)
 
