@@ -4,6 +4,8 @@ import os
 from datetime import datetime
 from torchvision import transforms
 import nibabel as nib
+import SimpleITK as sitk
+
 
 def show_image(image,mask,pred_image = None, path_dir=None, num=None):
     
@@ -121,7 +123,7 @@ def custom_transformers(scale, contrast, brightness, rotation, blur, img_size=51
     geometric_augs = [
         transforms.RandomResizedCrop(img_size, scale=scale) if scale else None,
         transforms.RandomRotation(rotation) if rotation else None,
-        transforms.GaussianBlur(blur) if blur else None,
+        # transforms.GaussianBlur(blur) if blur else None,
     ]
     color_augs = [
         transforms.ColorJitter(brightness= brightness, contrast=contrast) if brightness and contrast else None,
@@ -130,6 +132,22 @@ def custom_transformers(scale, contrast, brightness, rotation, blur, img_size=51
     transform_input = make_tfs(geometric_augs + color_augs)
     transform_target = make_tfs(geometric_augs)
     return transform_input, transform_target
+
+def custom_transformers_3d(scale, contrast, brightness, rotation, blur, volume_size=64):
+    geometric_augs = [
+        # transforms.RandomResizedCrop(volume_size, scale=(scale, scale)) if scale else None,
+        transforms.RandomRotation(rotation) if rotation else None,
+        # Note: GaussianBlur is not directly supported for 3D, you may need to implement a custom 3D blur function
+    ]
+
+    color_augs = [
+        transforms.ColorJitter(brightness=brightness, contrast=contrast) if brightness and contrast else None,
+    ]
+
+    transform_input = make_tfs(geometric_augs + color_augs)
+    transform_target = make_tfs(geometric_augs)
+    return transform_input, transform_target
+
 
 
 def train_fn(data_loader, model, criterion, optimizer, device):

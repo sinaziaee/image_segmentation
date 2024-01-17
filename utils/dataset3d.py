@@ -75,7 +75,11 @@ class SegmentationDataset(data.Dataset):
             self._set_seed(seed)
             target_img = self.transform_target(target_img)
             target_img = target_img.permute(1, 2, 0).contiguous()
-            
+        input_img = input_img.unsqueeze(axis=0)
+        target_img = target_img.unsqueeze(axis=0)
+        
+        input_img = input_img.to(torch.float32)
+        target_img = target_img.to(torch.float32)
         return input_img, target_img
         
     def __len__(self):
